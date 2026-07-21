@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Краснокумка Метеостанция</title>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 5px;
+            font-size: 28px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .status {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Главная сетка сайта по твоему рисунку */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* Общие стили блоков (плиток) */
+        .card {
+            background-color: #1e293b;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: #94a3b8;
+        }
+
+        .card-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Цветовые границы блоков строго по твоему рисунку */
+        .card-temp { border: 2px solid #ef4444; }    /* Красный */
+        .card-hum { border: 2px solid #eab308; }     /* Желтый */
+        .card-air { border: 2px solid #a855f7; }     /* Фиолетовый */
+        .card-uv { border: 2px solid #84cc16; }      /* Зеленый */
+        
+        /* Серый блок справа (Дождь) объединяет две строки по высоте */
+        .card-rain { 
+            border: 2px solid #94a3b8; 
+            grid-column: 3;
+            grid-row: 1 / span 2;
+            min-height: 240px;
+        }
+
+        /* Длинный черный блок по центру (График на 24 часа) */
+        .card-chart { 
+            border: 2px solid #334155; 
+            grid-column: 1 / span 3; 
+            height: 250px;
+            padding: 10px;
+            background-color: #0f172a;
+        }
+
+        /* Синие блоки (Прогноз погоды на 3 дня) */
+        .card-forecast { 
+            border: 2px solid #06b6d4; 
+            text-align: center;
+        }
+
+        .forecast-day {
+            font-weight: bold;
+            color: #38bdf8;
+            margin-bottom: 5px;
+        }
+
+        /* Адаптивность для телефонов, чтобы плитки не ломались */
+        @media (max-width: 768px) {
+            .grid-container { grid-template-columns: 1fr; }
+            .card-rain { grid-column: auto; grid-row: auto; min-height: auto; }
+            .card-chart { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📡 Краснокумка Метеостанция</h1>
+    <div class="status" id="status-text">Связь со станцией: проверка пакетов...</div>
+
+    <div class="grid-container">
+        <!-- Левая колонка верхнего ряда -->
+        <div class="card card-temp">
+            <div class="card-title">🔴 Температура</div>
+            <div class="card-value" id="temp">-- °C</div>
+        </div>
+        
+        <!-- Средняя колонка верхнего ряда -->
+        <div class="card card-air">
+            <div class="card-title">🟣 Воздух (MQ135)</div>
+            <div class="card-value" id="air">--</div>
+        </div>
+
+        <!-- Правый большой серый блок (Осадки) -->
+        <div class="card card-rain">
+            <div class="card-title">⚪ Датчик осадков (YL-83)</div>
+            <div class="card-value" id="rain" style="font-size: 20px; margin-top: 15px;">Ожидание капель...</div>
+        </div>
+
+        <!-- Вторая строка левой колонки -->
+        <div class="card card-hum">
+            <div class="card-title">🟡 Влажность</div>
+            <div class="card-value" id="humidity">-- %</div>
+        </div>
+
+        <!-- Вторая строка средней колонки -->
+        <div class="card card-uv">
+            <div class="card-title">🟢 УФ-Индекс</div>
+            <div class="card-value" id="uv">--</div>
+        </div>
+
+        <!-- Длинный черный блок по центру (График изменений за 24 часа) -->
+        <div class="card card-chart">
+            <!-- Сюда выводится виджет информера NarodMon с живым графиком твоих датчиков -->
+            <iframe id="monitor-widget" src="https://narodmon.ru" width="100%" height="100%" frameborder="0" style="border-radius: 8px;"></iframe>
+        </div>
+
+        <!-- Синие блоки прогноза погоды на 3 дня -->
+        <div class="card card-forecast">
+            <div class="forecast-day">Завтра</div>
+            <div id="f-day1">-- °C<br>Загрузка...</div>
+        </div>
+        <div class="card card-forecast">
+            <div class="forecast-day">Послезавтра</div>
+            <div id="f-day2">-- °C<br>Загрузка...</div>
+        </div>
+        <div class="card card-forecast">
+            <div class="forecast-day">3-й день</div>
+            <div id="f-day3">-- °C<br>Загрузка...</div>
+        </div>
+    </div>
+
+<script>
+    const macID = "68094753D1A8"; // Твой ID метеостанции
+
+    function updateData() {
+        // Подтягиваем живые данные твоей платы с NarodMon
+        fetch(`https://narodmon.ru{macID}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.sensors) {
+                    data.sensors.forEach(s => {
+                        if (s.id === 'T1') document.getElementById('temp').innerText = s.value + ' °C';
+                        if (s.id === 'H1') document.getElementById('humidity').innerText = s.value + ' %';
+                        if (s.id === 'U1') document.getElementById('uv').innerText = s.value;
+                        if (s.id === 'A1') document.getElementById('air').innerText = s.value;
+                        if (s.id === 'R1') {
+                            document.getElementById('rain').innerText = s.value > 2000 ? "🌧️ Идет дождь!" : "☀️ Сухо";
+                        }
+                    });
+                    document.getElementById('status-text').innerText = "Станция онлайн. Данные обновлены.";
+                    document.getElementById('status-text').style.color = "#4ade80";
+                }
+            })
+            .catch(() => {
+                document.getElementById('status-text').innerText = "Плата в режиме ожидания (Датчики отключены)";
+            });
+
+        // Имитируем прогноз погоды для Краснокумки на 3 дня (потом можно заменить на API погоды)
+        document.getElementById('f-day1').innerHTML = "+26 °C<br>🌤️ Ясно";
+        document.getElementById('f-day2').innerHTML = "+24 °C<br>🌧️ Дождь";
+        document.getElementById('f-day3').innerHTML = "+25 °C<br>☁️ Облачно";
+    }
+
+    updateData();
+    setInterval(updateData, 30000); // Обновление раз в 30 секунд
+</script>
+
+</body>
+</html>
